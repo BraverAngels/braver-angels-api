@@ -1,30 +1,24 @@
 const express = require('express')
 const fetch = require('node-fetch');
 const router = express.Router()
+const logger = require('pino-http')()
 require('dotenv').config()
 
-// The POST request will contain several
-// headers such as content-type and authorization.
-// The content-type header represents the media type of the resource
-// The authorization header is unique to your app and confirms the validity of the request.
-// To verify if a request is sent by the Zoom Service,
-// compare the authorization header with the verification token generated
-// in the page of your Marketplace app.
+router.use(function validateBearerToken(req, res, next) {
+  const apiToken = process.env.ZOOM_API_TOKEN
+  const authToken = req.get('Authorization')
 
+  if (!authToken || authToken.split(' ')[1] !== apiToken) {
+    return res.status(401).send('Unauthorized request')
+  }
 
-// router.use(function validateBearerToken(req, res, next) {
-//   const apiToken = process.env.ZOOM_API_TOKEN
-//   const authToken = req.get('Authorization')
-//
-//   if (!authToken || authToken.split(' ')[1] !== apiToken) {
-//     return res.status(401).json({ error: 'Unauthorized request' })
-//   }
-//   // move to the next middleware
-//   next()
-// })
+  // move to the next middleware if authenticated
+  next()
+})
 
 
 router.post('/', (req, res) => {
+  logger(req, res)
 
   // meeting registration created
   const registrant = req.body.payload.object.registrant;

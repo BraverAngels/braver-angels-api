@@ -1,11 +1,15 @@
 const express = require("express");
 const app = express();
+const pino = require('pino-http')()
 const zoomWebhook = require('./src/zoom')
 
 const port = 5000;
 
 // Body parser
 app.use(express.json());
+
+// Logging
+app.use(pino)
 
 // Home route
 app.get("/", (req, res) => {
