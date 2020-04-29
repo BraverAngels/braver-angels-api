@@ -15,6 +15,7 @@
     "express": "^4.17.1",
     "node-fetch": "^2.6.0",
     "nodemon": "^2.0.3",
+    "osdi-client": "^1.0.2",
     "pino-http": "^5.0.0"
   }
 }

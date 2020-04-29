@@ -2,6 +2,8 @@ const express = require("express");
 const app = express();
 const pino = require('pino-http')()
 const zoomWebhook = require('./src/zoom')
+const stripeWebhook = require('./src/stripe')
+const subscribeWebhook = require('./src/subscribe')
 
 const port = 5000;
 
@@ -31,6 +33,8 @@ app.get("/", (req, res) => {
 // });
 
 app.use('/zoom', zoomWebhook)
+app.use('/stripe', stripeWebhook)
+app.use('/subscribe', subscribeWebhook)
 
 // Listen on port 5000
 app.listen(port, () => {
