@@ -18,7 +18,7 @@ require('dotenv').config()
 
 
 router.post('/', (req, res) => {
-  logger(req, res)
+  req.log.info(req.body)
 
   // meeting registration created
   // const registrant = req.body.payload.object.registrant;
@@ -42,7 +42,7 @@ router.post('/', (req, res) => {
   //   person: personData,
   //   addTags: [],
   // };
-  console.log(req)
+  console.log(req.body)
   res.status(200).send('working')
 
   // fetch('https://actionnetwork.org/api/v2/people/', {

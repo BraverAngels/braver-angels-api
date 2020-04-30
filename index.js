@@ -18,20 +18,6 @@ app.get("/", (req, res) => {
   res.send("Welcome to a basic express App");
 });
 
-// Mock API
-// app.get("/users", (req, res) => {
-//   res.json([
-//     { name: "William", location: "Abu Dhabi" },
-//     { name: "Chris", location: "Vegas" }
-//   ]);
-// });
-
-// app.post("/zoom", (req, res) => {
-//   // const { name, location } = req.body;
-//
-//   res.send({ status: "User created"});
-// });
-
 app.use('/zoom', zoomWebhook)
 app.use('/stripe', stripeWebhook)
 app.use('/subscribe', subscribeWebhook)
