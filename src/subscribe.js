@@ -1,7 +1,8 @@
 const express = require('express')
 const fetch = require('node-fetch');
 const router = express.Router()
-const logger = require('pino-http')()
+const bodyParser = require('body-parser');
+
 require('dotenv').config()
 
 // router.use(function validateBearerToken(req, res, next) {
@@ -16,33 +17,12 @@ require('dotenv').config()
 //   next()
 // })
 
+// create application/x-www-form-urlencoded parser
+var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
-router.post('/', (req, res) => {
+router.post('/', urlencodedParser, (req, res) => {
   req.log.info(req.body)
 
-  // meeting registration created
-  // const registrant = req.body.payload.object.registrant;
-  //
-  // const personData = {
-  //   email_addresses: [{
-  //     address: registrant.email,
-  //     status: 'subscribed'
-  //   }],
-  //   family_name: registrant.last_name,
-  //   given_name: registrant.first_name,
-  //   postal_addresses: [{
-  //     postal_code: registrant.zip
-  //   }],
-  //   country: "US",
-  //   language: "en",
-  //   customFields: []
-  // };
-  //
-  // const data = {
-  //   person: personData,
-  //   addTags: [],
-  // };
-  console.log(req.body)
   res.status(200).send('working')
 
   // fetch('https://actionnetwork.org/api/v2/people/', {
