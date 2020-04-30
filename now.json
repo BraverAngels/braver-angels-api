@@ -5,12 +5,12 @@
     {
       "src": "/stripe",
       "dest": "/index.js",
-      "methods": ["GET"]
+      "methods": ["POST"]
     },
     {
       "src": "/subscribe",
       "dest": "/index.js",
-      "methods": ["GET"]
+      "methods": ["POST"]
     },
     {
       "src": "/zoom",
