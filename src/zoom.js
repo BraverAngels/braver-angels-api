@@ -23,7 +23,10 @@ router.use(function validateBearerToken(req, res, next) {
 
 router.post('/', jsonParser, (req, res, next) => {
 
+
+
   // meeting registration created
+  const topic = req.body.payload.object.topic;
   const registrant = req.body.payload.object.registrant;
 
   // find the registrant's "color" (political affiliation)
@@ -60,7 +63,8 @@ router.post('/', jsonParser, (req, res, next) => {
     country: "US",
     language: "en",
     custom_fields: {
-      'Master Partisanship': registrantColor
+      'Master Partisanship': registrantColor,
+      [topic + "_attendance"]: "registered"
     }
   };
 
