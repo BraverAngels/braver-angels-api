@@ -20,10 +20,20 @@ require('dotenv').config()
 // create application/x-www-form-urlencoded parser
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
-router.post('/', urlencodedParser, (req, res) => {
-  req.log.info(req.body)
+router.post('/', urlencodedParser, (req, res, next) => {
 
   const subscriber = req.body
+
+  if (
+    !subscriber.email ||
+    !subscriber.zip ||
+    !subscriber.first_name ||
+    !subscriber.last_name
+  ) {
+    //Bail if the required data isn't present
+    res.status(400).send("Required fields not present");
+    return next();
+  }
 
   const personData = {
     email_addresses: [{

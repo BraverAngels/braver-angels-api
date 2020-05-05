@@ -2,7 +2,11 @@ const express = require('express')
 const fetch = require('node-fetch');
 const router = express.Router()
 const logger = require('pino-http')()
+var bodyParser = require('body-parser')
 require('dotenv').config()
+
+// create application/json parser
+var jsonParser = bodyParser.json()
 
 router.use(function validateBearerToken(req, res, next) {
   const apiToken = process.env.ZOOM_API_TOKEN
@@ -17,7 +21,7 @@ router.use(function validateBearerToken(req, res, next) {
 })
 
 
-router.post('/', (req, res, next) => {
+router.post('/', jsonParser, (req, res, next) => {
 
   // meeting registration created
   const registrant = req.body.payload.object.registrant;
@@ -28,7 +32,7 @@ router.post('/', (req, res, next) => {
   });
 
   if (!colorAnswer) {
-    res.status(200).send('Not a debate/workshop registrant');
+    res.status(204).send('Not a debate/workshop registrant');
     return next();
   }
 
