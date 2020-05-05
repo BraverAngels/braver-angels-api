@@ -7,9 +7,6 @@ const subscribeWebhook = require('./src/subscribe')
 
 const port = 5000;
 
-// Body parser
-app.use(express.json());
-
 // Logging
 app.use(pino)
 
