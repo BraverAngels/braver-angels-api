@@ -17,12 +17,32 @@ router.use(function validateBearerToken(req, res, next) {
 })
 
 
-router.post('/', (req, res) => {
-  logger(req, res)
+router.post('/', (req, res, next) => {
 
   // meeting registration created
   const registrant = req.body.payload.object.registrant;
 
+  // find the registrant's "color" (political affiliation)
+  const colorAnswer = registrant.custom_questions.find((question) => {
+    return question.title.toLowerCase() === "you consider yourself"
+  });
+
+  if (!colorAnswer) {
+    res.status(200).send('Not a debate/workshop registrant');
+    return next();
+  }
+
+  let registrantColor = null
+
+  if (colorAnswer.value.toLowerCase().includes("other")) {
+    registrantColor = "Other"
+  } else if (colorAnswer.value.toLowerCase().includes("blue")) {
+    registrantColor = "Blue"
+  } else if (colorAnswer.value.toLowerCase().includes("red")) {
+    registrantColor = "Red"
+  }
+
+  // set up request data
   const personData = {
     email_addresses: [{
       address: registrant.email,
@@ -35,14 +55,15 @@ router.post('/', (req, res) => {
     }],
     country: "US",
     language: "en",
-    customFields: []
+    custom_fields: {
+      'Master Partisanship': registrantColor
+    }
   };
 
   const data = {
     person: personData,
-    addTags: [],
+    add_tags: [registrantColor],
   };
-
 
   fetch('https://actionnetwork.org/api/v2/people/', {
         method: 'POST',
@@ -60,7 +81,6 @@ router.post('/', (req, res) => {
     })
     .then(() => res.status(200).send('Successfully submitted to Action Network'))
     .catch(err => res.status(500).send('Action Network request failed'));
-
 
 })
 
