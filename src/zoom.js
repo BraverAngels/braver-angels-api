@@ -2,11 +2,12 @@ const express = require('express')
 const fetch = require('node-fetch');
 const router = express.Router()
 const logger = require('pino-http')()
-var bodyParser = require('body-parser')
+const bodyParser = require('body-parser')
 require('dotenv').config()
 
 // create application/json parser
 var jsonParser = bodyParser.json()
+
 
 router.use(function validateBearerToken(req, res, next) {
   const apiToken = process.env.ZOOM_API_TOKEN
@@ -23,8 +24,6 @@ router.use(function validateBearerToken(req, res, next) {
 
 router.post('/', jsonParser, (req, res, next) => {
 
-
-
   // meeting registration created
   const topic = req.body.payload.object.topic;
   const registrant = req.body.payload.object.registrant;
@@ -35,12 +34,17 @@ router.post('/', jsonParser, (req, res, next) => {
     return questionTitle === "you consider yourself" || questionTitle === "i consider myself";
   });
 
+  /*
+  * If the political affiliation question isn't present then this isn't a debate/workshop
+  * Bail because it's not a public event
+  */
   if (!colorAnswer) {
     res.status(204).send('Not a debate/workshop registrant');
     return next();
   }
 
-  let registrantColor = null
+  // Find the registrant's political affiliation in custom questions
+  let registrantColor = null;
 
   if (colorAnswer.value.toLowerCase().includes("other")) {
     registrantColor = "Other"
@@ -50,7 +54,7 @@ router.post('/', jsonParser, (req, res, next) => {
     registrantColor = "Red"
   }
 
-  // set up request data
+  // set up Action Network request data
   const personData = {
     email_addresses: [{
       address: registrant.email,
@@ -74,22 +78,26 @@ router.post('/', jsonParser, (req, res, next) => {
     add_tags: [registrantColor],
   };
 
+  /*
+  * Send the data to Action Network
+  * This will trigger the "Person Signup Helper" (https://actionnetwork.org/docs/v2/person_signup_helper)
+  */
   fetch('https://actionnetwork.org/api/v2/people/', {
-        method: 'POST',
-        body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json',
-          'OSDI-API-Token': process.env.AN_KEY
-        },
-    })
-    .then(res => {
-      if (!res.ok) {
-        throw "Request error"
-      }
-      return res.text()
-    })
-    .then(() => res.status(200).send('Successfully submitted to Action Network'))
-    .catch(err => res.status(500).send('Action Network request failed'));
+    method: 'POST',
+    body: JSON.stringify(data),
+    headers: {
+      'Content-Type': 'application/json',
+      'OSDI-API-Token': process.env.AN_KEY
+    },
+  })
+  .then(res => {
+    if (!res.ok) {
+      throw "Request error"
+    }
+    return res.text()
+  })
+  .then(() => res.status(200).send('Successfully submitted to Action Network'))
+  .catch(err => res.status(500).send('Action Network request failed'));
 
 })
 

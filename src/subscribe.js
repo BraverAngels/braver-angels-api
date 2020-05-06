@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 
 require('dotenv').config()
 
+
 // router.use(function validateBearerToken(req, res, next) {
 //   const apiToken = process.env.ZOOM_API_TOKEN
 //   const authToken = req.get('Authorization')
@@ -17,24 +18,26 @@ require('dotenv').config()
 //   next()
 // })
 
+
 // create application/x-www-form-urlencoded parser
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
 router.post('/', urlencodedParser, (req, res, next) => {
 
-  const subscriber = req.body
+  const subscriber = req.body;
 
+  // Bail if the required data isn't present
   if (
     !subscriber.email ||
     !subscriber.zip ||
     !subscriber.first_name ||
     !subscriber.last_name
   ) {
-    //Bail if the required data isn't present
     res.status(400).send("Required fields not present");
     return next();
   }
 
+  // Set up data to be sent to Action Network
   const personData = {
     email_addresses: [{
       address: subscriber.email,
@@ -54,23 +57,27 @@ router.post('/', urlencodedParser, (req, res, next) => {
     person: personData,
   };
 
+  /*
+  * Send the data to Action Network
+  * This will trigger the "Record Submission Helper" (https://actionnetwork.org/docs/v2/record_submission_helper)
+  * The "Subscribe" form settings can be accessed here: https://actionnetwork.org/forms/subscribe-to-our-newsletter-12/manage
+  */
   fetch('https://actionnetwork.org/api/v2/forms/70252a3c-235d-43b2-8761-aa9c559fb6fd/submissions/', {
-        method: 'POST',
-        body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json',
-          'OSDI-API-Token': process.env.AN_KEY
-        },
-    })
-    .then(res => {
-      if (!res.ok) {
-        throw "Request error"
-      }
-      return res.text()
-    })
-    .then(() => res.status(200).send('Successfully submitted to Action Network'))
-    .catch(err => res.status(500).send('Action Network request failed'));
-
+    method: 'POST',
+    body: JSON.stringify(data),
+    headers: {
+      'Content-Type': 'application/json',
+      'OSDI-API-Token': process.env.AN_KEY
+    },
+  })
+  .then(res => {
+    if (!res.ok) {
+      throw "Request error"
+    }
+    return res.text()
+  })
+  .then(() => res.status(200).send('Successfully submitted to Action Network'))
+  .catch(err => res.status(500).send('Action Network request failed'));
 
 })
 

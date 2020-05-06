@@ -81,7 +81,7 @@ describe('API Routes', () => {
         })
     })
 
-    it('Responds with a 200 if person data is included', () => {
+    it.skip('Responds with a 200 if person data is included', () => {
       return request(app).post("/zoom")
         .send(requestData)
         .type('json')
