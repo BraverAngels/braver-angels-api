@@ -31,7 +31,8 @@ router.post('/', jsonParser, (req, res, next) => {
 
   // find the registrant's "color" (political affiliation)
   const colorAnswer = registrant.custom_questions.find((question) => {
-    return question.title.toLowerCase() === "you consider yourself"
+    const questionTitle = question.title.toLowerCase();
+    return questionTitle === "you consider yourself" || questionTitle === "i consider myself";
   });
 
   if (!colorAnswer) {
