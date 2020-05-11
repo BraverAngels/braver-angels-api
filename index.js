@@ -1,9 +1,9 @@
 const express = require("express");
 const app = express();
 const pino = require('pino-http')()
-const zoomWebhook = require('./src/zoom')
-const stripeWebhook = require('./src/stripe')
-const subscribeWebhook = require('./src/subscribe')
+const zoomWebhook = require('./src/routes/zoom')
+const stripeWebhook = require('./src/routes/stripe')
+const subscribeWebhook = require('./src/routes/subscribe')
 
 const port = 5000;
 

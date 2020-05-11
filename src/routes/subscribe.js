@@ -2,12 +2,13 @@ const express = require('express')
 const fetch = require('node-fetch');
 const router = express.Router()
 const bodyParser = require('body-parser');
+const logger = require('pino-http')()
 
 require('dotenv').config()
 
 
 // router.use(function validateBearerToken(req, res, next) {
-//   const apiToken = process.env.ZOOM_API_TOKEN
+//   const apiToken = process.env.SUBSCRIBE_TOKEN
 //   const authToken = req.get('Authorization')
 //
 //   if (!authToken || authToken !== apiToken) {
@@ -23,6 +24,8 @@ require('dotenv').config()
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
 router.post('/', urlencodedParser, (req, res, next) => {
+
+  logger(req, res)
 
   const subscriber = req.body;
 
