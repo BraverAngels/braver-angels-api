@@ -40,6 +40,7 @@ describe('API Routes', () => {
         .type('json')
         .send({bad_key: 'bad_value'})
         .then(response => {
+          console.log(response.text)
           expect(response.status).toEqual(400);
         })
     })

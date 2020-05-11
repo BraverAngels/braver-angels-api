@@ -16,7 +16,8 @@
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "node-fetch": "^2.6.0",
-    "pino-http": "^5.0.0"
+    "pino-http": "^5.0.0",
+    "stripe": "^8.50.0"
   },
   "devDependencies": {
     "jest": "^24.9.0",
