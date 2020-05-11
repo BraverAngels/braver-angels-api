@@ -7,17 +7,22 @@ const logger = require('pino-http')()
 require('dotenv').config()
 
 
-// router.use(function validateBearerToken(req, res, next) {
-//   const apiToken = process.env.SUBSCRIBE_TOKEN
-//   const authToken = req.get('Authorization')
-//
-//   if (!authToken || authToken !== apiToken) {
-//     return res.status(401).send('Unauthorized request')
-//   }
-//
-//   // move to the next middleware if authenticated
-//   next()
-// })
+router.use(function validateBearerToken(req, res, next) {
+  const apiToken = process.env.SUBSCRIBE_TOKEN
+
+  let authToken = '';
+
+  if (req.get('Authorization')) {
+    authToken = req.get('Authorization').split(" ")[1];
+  }
+
+  if (!authToken || authToken !== apiToken) {
+    return res.status(401).send('Unauthorized request')
+  }
+
+  // move to the next middleware if authenticated
+  next()
+})
 
 
 // create application/x-www-form-urlencoded parser

@@ -19,18 +19,20 @@ let requestData = {
 describe('API Routes', () => {
 
   describe('POST /subscribe', () => {
-    // it('Responds with a 401 if not given auth token', () => {
-    //   return request(app).post("/zoom")
-    //     .then(response => {
-    //       expect(response.status).toEqual(401);
-    //     })
-    // })
+    it('Responds with a 401 if not given auth token', () => {
+      return request(app).post("/subscribe")
+        .send({bad_key: 'bad_value'})
+        .type('form')
+        .then(response => {
+          expect(response.status).toEqual(401);
+        })
+    })
 
     it('Responds with a 400 if person data invalid', () => {
       return request(app).post("/subscribe")
         .send({bad_key: 'bad_value'})
         .type('form')
-        // .set("Authorization", process.env.ZOOM_API_TOKEN)
+        .set("Authorization", "Bearer " + process.env.SUBSCRIBE_TOKEN)
         .then(response => {
           expect(response.status).toEqual(400);
         })
@@ -40,7 +42,7 @@ describe('API Routes', () => {
       return request(app).post("/subscribe")
         .send(requestData)
         .type('form')
-        // .set("Authorization", process.env.ZOOM_API_TOKEN)
+        .set("Authorization", "Bearer " + process.env.SUBSCRIBE_TOKEN)
         .then(response => {
           expect(response.status).toEqual(200);
         })
