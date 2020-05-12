@@ -10,23 +10,23 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 // create application/json parser
 var jsonParser = bodyParser.json()
 
-router.use(jsonParser, function validateStripeSignature(req, res, next) {
-
-  const sig = req.headers['stripe-signature'];
-  const endpointSecret = process.env.STRIPE_SIGNING_SECRET;
-
-  let event;
-
-  try {
-    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-  }
-  catch (err) {
-    res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-
-  // move to the next middleware if authenticated
-  next()
-})
+// router.use(jsonParser, function validateStripeSignature(req, res, next) {
+//
+//   const sig = req.headers['stripe-signature'];
+//   const endpointSecret = process.env.STRIPE_SIGNING_SECRET;
+//
+//   let event;
+//
+//   try {
+//     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+//   }
+//   catch (err) {
+//     res.status(400).send(`Webhook Error: ${err.message}`);
+//   }
+//
+//   // move to the next middleware if authenticated
+//   next()
+// })
 
 
 
