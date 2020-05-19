@@ -7,32 +7,36 @@ require('dotenv').config()
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 
-// create application/json parser
-var jsonParser = bodyParser.json()
+router.use(bodyParser.json({
+  // gives this endpoint access to raw body in req.rawBody
+  verify: function (req, res, buf) {
+    req.rawBody = buf;
+  }
+}), function validateStripeSignature(req, res, next) {
 
-// router.use(jsonParser, function validateStripeSignature(req, res, next) {
-//
-//   const sig = req.headers['stripe-signature'];
-//   const endpointSecret = process.env.STRIPE_SIGNING_SECRET;
-//
-//   let event;
-//
-//   try {
-//     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-//   }
-//   catch (err) {
-//     res.status(400).send(`Webhook Error: ${err.message}`);
-//   }
-//
-//   // move to the next middleware if authenticated
-//   next()
-// })
+  const sig = req.headers['stripe-signature'];
+
+  const endpointSecret = process.env.STRIPE_SIGNING_SECRET;
+
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.rawBody, sig, endpointSecret);
+  }
+  catch (err) {
+    console.log(err.message)
+    res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // move to the next middleware if authenticated
+  next()
+})
 
 
-
-router.post('/', jsonParser, (req, res, next) => {
+router.post('/', (req, res, next) => {
 
   const AN_FUNDRAISING_ID = "4b5466f8-885f-432c-8b18-b491aa3ec4ab";
+
 
   // Bail if this doesn't look like a Stripe webhook request body
   if (
@@ -87,7 +91,10 @@ router.post('/', jsonParser, (req, res, next) => {
     return res.text()
   })
   .then(() => res.status(200).send('Successfully submitted to Action Network'))
-  .catch(err => res.status(500).send('Action Network request failed'));
+  .catch((err) => {
+    console.log(err.message)
+    res.status(500).send('Action Network request failed')
+  });
 
 })
 
