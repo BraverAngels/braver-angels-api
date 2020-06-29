@@ -16,6 +16,11 @@
       "src": "/zoom",
       "dest": "/index.js",
       "methods": ["POST"]
+    },
+    {
+      "src": "/eventbrite",
+      "dest": "/index.js",
+      "methods": ["POST"]
     }
   ]
 }

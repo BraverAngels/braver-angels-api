@@ -1,6 +1,7 @@
 const express = require('express')
 const fetch = require('node-fetch');
 const router = express.Router()
+const logger = require('pino-http')()
 const bodyParser = require('body-parser')
 require('dotenv').config()
 
@@ -8,30 +9,24 @@ require('dotenv').config()
 var jsonParser = bodyParser.json()
 
 
-router.use(function validateBearerToken(req, res, next) {
-  const apiToken = process.env.ZOOM_API_TOKEN
-  const authToken = req.get('Authorization')
-
-  if (!authToken || authToken !== apiToken) {
-    return res.status(401).send('Unauthorized request')
-  }
-
-  // move to the next middleware if authenticated
-  next()
-})
+// router.use(function validateBearerToken(req, res, next) {
+//   const apiToken = process.env.ZOOM_API_TOKEN
+//   const authToken = req.get('Authorization')
+//
+//   if (!authToken || authToken !== apiToken) {
+//     return res.status(401).send('Unauthorized request')
+//   }
+//
+//   // move to the next middleware if authenticated
+//   next()
+// })
 
 
 router.post('/', jsonParser, (req, res, next) => {
 
   // meeting registration created
-  const topic = req.body.payload.object.topic;
-  const registrant = req.body.payload.object.registrant;
-
-  // find the registrant's "color" (political affiliation)
-  const colorAnswer = registrant.custom_questions.find((question) => {
-    const questionTitle = question.title.toLowerCase();
-    return questionTitle === "you consider yourself" || questionTitle === "i consider myself";
-  });
+  const topic = req.body.topic;
+  const colorAnswer = req.body.color;
 
   /*
   * If the political affiliation question isn't present then this isn't a debate/workshop
@@ -56,14 +51,14 @@ router.post('/', jsonParser, (req, res, next) => {
   // set up Action Network request data
   const personData = {
     email_addresses: [{
-      address: registrant.email,
+      address: req.body.email,
       status: 'subscribed'
     }],
-    family_name: registrant.last_name,
-    given_name: registrant.first_name,
-    postal_addresses: [{
-      postal_code: registrant.zip
-    }],
+    family_name: req.body.last_name,
+    given_name: req.body.first_name,
+    // postal_addresses: [{
+    //   postal_code: registrant.zip
+    // }],
     country: "US",
     language: "en",
     custom_fields: {

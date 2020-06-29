@@ -2,7 +2,6 @@ const express = require('express')
 const fetch = require('node-fetch');
 const router = express.Router()
 const bodyParser = require('body-parser');
-const logger = require('pino-http')()
 
 require('dotenv').config()
 
@@ -29,8 +28,6 @@ router.use(function validateBearerToken(req, res, next) {
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
 router.post('/', urlencodedParser, (req, res, next) => {
-
-  logger(req, res)
 
   const subscriber = req.body;
 

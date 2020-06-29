@@ -1,9 +1,9 @@
 const express = require("express");
 const app = express();
-const pino = require('pino-http')()
+const pino = require('express-pino-logger')()
 const zoomWebhook = require('./src/routes/zoom')
 const stripeWebhook = require('./src/routes/stripe')
-const subscribeWebhook = require('./src/routes/subscribe')
+const eventbriteWebhook = require('./src/routes/eventbrite')
 
 const port = 5000;
 
@@ -18,6 +18,7 @@ app.get("/", (req, res) => {
 app.use('/zoom', zoomWebhook)
 app.use('/stripe', stripeWebhook)
 app.use('/subscribe', subscribeWebhook)
+app.use('/eventbrite', eventbriteWebhook)
 
 // Listen on port 5000
 app.listen(port, () => {

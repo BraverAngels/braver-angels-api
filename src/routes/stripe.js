@@ -17,15 +17,14 @@ router.use(bodyParser.json({
   const sig = req.headers['stripe-signature'];
 
   const endpointSecret = process.env.STRIPE_SIGNING_SECRET;
-
+  
   let event;
 
   try {
     event = stripe.webhooks.constructEvent(req.rawBody, sig, endpointSecret);
   }
   catch (err) {
-    console.log(err.message)
-    res.status(400).send(`Webhook Error: ${err.message}`);
+    res.status(401).send(`Webhook Error: ${err.message}`);
   }
 
   // move to the next middleware if authenticated
@@ -92,7 +91,6 @@ router.post('/', (req, res, next) => {
   })
   .then(() => res.status(200).send('Successfully submitted to Action Network'))
   .catch((err) => {
-    console.log(err.message)
     res.status(500).send('Action Network request failed')
   });
 
