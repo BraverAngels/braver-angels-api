@@ -41,10 +41,10 @@ router.post('/', jsonParser, (req, res, next) => {
 
   Promise.all([getEventDetails(), getUserDetails()]).then(([eventDetails, userDetails]) => {
     
-    if (typeof userDetails.answers == "undefined") {
+    if (typeof userDetails.answers === "undefined") {
       res.status(204).send('No custom questions found')
     }
-    
+
     const zip = userDetails.answers.find(answer => 
       answer.question.toLowerCase() === "what is your zip code?"
     ).answer;
@@ -68,16 +68,6 @@ router.post('/', jsonParser, (req, res, next) => {
       politicalOffiliation = "Other"
     }
 
-    foundData = {
-      eventName: eventDetails.name.text,
-      eventDate: eventDetails.start.local.split("T")[0],
-      firstName: userDetails.profile.first_name,
-      lastName: userDetails.profile.last_name,
-      email: userDetails.profile.email,
-      zip,
-      politicalOffiliation
-    }
-
     const personData = {
       email_addresses: [{
         address: userDetails.profile.email,
@@ -92,7 +82,7 @@ router.post('/', jsonParser, (req, res, next) => {
       language: "en",
       custom_fields: {
         'Master Partisanship': politicalOffiliation,
-        [eventDetails.name.text + "_attendance"]: "registered"
+        [eventDetails.start.local.split("T")[0] + " " + eventDetails.name.text + "_attendance"]: "registered"
       }
     };
 
