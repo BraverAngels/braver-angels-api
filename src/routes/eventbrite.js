@@ -41,6 +41,10 @@ router.post('/', jsonParser, (req, res, next) => {
 
   Promise.all([getEventDetails(), getUserDetails()]).then(([eventDetails, userDetails]) => {
     
+    if (typeof userDetails.answers == "undefined") {
+      res.status(204).send('No custom questions found')
+    }
+    
     const zip = userDetails.answers.find(answer => 
       answer.question.toLowerCase() === "what is your zip code?"
     ).answer;
@@ -48,6 +52,10 @@ router.post('/', jsonParser, (req, res, next) => {
     const redBlueAnswer = userDetails.answers.find(answer => 
       answer.question.toLowerCase() === "you consider yourself"
     ).answer;
+
+    if (!zip || !redBlueAnswer) {
+      res.status(204).send('No custom questions found')
+    }
 
     // Find the registrant's political affiliation in custom questions
     let politicalOffiliation = null;
