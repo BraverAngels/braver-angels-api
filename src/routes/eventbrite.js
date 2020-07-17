@@ -42,27 +42,27 @@ router.post('/', jsonParser, (req, res, next) => {
   Promise.all([getEventDetails(), getUserDetails()]).then(([eventDetails, userDetails]) => {
     
     if (typeof userDetails.answers === "undefined") {
-      res.status(204).send('No custom questions found')
+      throw "No ZIP or RedBlue Info"
     }
 
     const zip = userDetails.answers.find(answer => 
-      answer.question.toLowerCase() === "what is your zip code?"
-    ).answer;
+      answer.question.toLowerCase() === "what is your zip code?" || answer.question.toLowerCase() === "what is your zipcode?"
+    )
 
     const redBlueAnswer = userDetails.answers.find(answer => 
       answer.question.toLowerCase() === "you consider yourself"
-    ).answer;
+    );
 
     if (!zip || !redBlueAnswer) {
-      res.status(204).send('No custom questions found')
+      throw "No ZIP or RedBlue Info"
     }
 
     // Find the registrant's political affiliation in custom questions
     let politicalOffiliation = null;
 
-    if (redBlueAnswer.includes("blue")) {
+    if (redBlueAnswer.answer.includes("blue")) {
       politicalOffiliation = "Blue"
-    } else if (redBlueAnswer.includes("red")) {
+    } else if (redBlueAnswer.answer.includes("red")) {
       politicalOffiliation = "Red"
     } else {
       politicalOffiliation = "Other"
@@ -76,7 +76,7 @@ router.post('/', jsonParser, (req, res, next) => {
       family_name: userDetails.profile.last_name,
       given_name: userDetails.profile.first_name,
       postal_addresses: [{
-        postal_code: zip
+        postal_code: zip.answer
       }],
       country: "US",
       language: "en",
@@ -110,9 +110,13 @@ router.post('/', jsonParser, (req, res, next) => {
       return res.text()
     })
     .then(() => res.status(200).send('Successfully submitted to Action Network'))
-    .catch(err => res.status(500).send('Action Network request failed'));
+    .catch(err => {
+      console.log(err.message)
+      res.status(500).send('Action Network request failed')
+    });
 
-  });
+  })
+  .catch(err => res.status(500).send('request failed'));
 
 })
 
