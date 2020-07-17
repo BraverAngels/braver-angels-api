@@ -1,98 +1,122 @@
 const express = require('express')
 const fetch = require('node-fetch');
 const router = express.Router()
-const logger = require('pino-http')()
 const bodyParser = require('body-parser')
 require('dotenv').config()
 
 // create application/json parser
 var jsonParser = bodyParser.json()
 
-
-// router.use(function validateBearerToken(req, res, next) {
-//   const apiToken = process.env.ZOOM_API_TOKEN
-//   const authToken = req.get('Authorization')
-//
-//   if (!authToken || authToken !== apiToken) {
-//     return res.status(401).send('Unauthorized request')
-//   }
-//
-//   // move to the next middleware if authenticated
-//   next()
-// })
-
-
 router.post('/', jsonParser, (req, res, next) => {
+  req.log.info(req.body)
 
-  // meeting registration created
-  const topic = req.body.topic;
-  const colorAnswer = req.body.color;
+  const attendeeUrl = req.body.api_url + "?token=" + process.env.EVENTBRITE_TOKEN;
+  const eventUrl = attendeeUrl.split("/attendees")[0] + "?token=" + process.env.EVENTBRITE_TOKEN;
+  let foundData;
 
-  /*
-  * If the political affiliation question isn't present then this isn't a debate/workshop
-  * Bail because it's not a public event
-  */
-  if (!colorAnswer) {
-    res.status(204).send('Not a debate/workshop registrant');
-    return next();
+  function getUserDetails() {
+    return fetch(attendeeUrl)
+      .then(res => {
+        if (!res.ok) {
+          throw "Request error"
+        }
+        return res.json()
+      })
+      .then(data => data)
+      .catch(err => res.status(500).send('request failed'));
   }
 
-  // Find the registrant's political affiliation in custom questions
-  let registrantColor = null;
-
-  if (colorAnswer.value.toLowerCase().includes("other")) {
-    registrantColor = "Other"
-  } else if (colorAnswer.value.toLowerCase().includes("blue")) {
-    registrantColor = "Blue"
-  } else if (colorAnswer.value.toLowerCase().includes("red")) {
-    registrantColor = "Red"
+  function getEventDetails() {
+    return fetch(eventUrl)
+      .then(res => {
+        if (!res.ok) {
+          throw "Request error"
+        }
+        return res.json()
+      })
+      .then(data => data)
+      .catch(err => res.status(500).send('request failed'));
   }
 
-  // set up Action Network request data
-  const personData = {
-    email_addresses: [{
-      address: req.body.email,
-      status: 'subscribed'
-    }],
-    family_name: req.body.last_name,
-    given_name: req.body.first_name,
-    // postal_addresses: [{
-    //   postal_code: registrant.zip
-    // }],
-    country: "US",
-    language: "en",
-    custom_fields: {
-      'Master Partisanship': registrantColor,
-      [topic + "_attendance"]: "registered"
-    }
-  };
 
-  const data = {
-    person: personData,
-    add_tags: [registrantColor],
-  };
+  Promise.all([getEventDetails(), getUserDetails()]).then(([eventDetails, userDetails]) => {
+    
+    const zip = userDetails.answers.find(answer => 
+      answer.question.toLowerCase() === "what is your zip code?"
+    ).answer;
 
-  /*
-  * Send the data to Action Network
-  * This will trigger the "Person Signup Helper" (https://actionnetwork.org/docs/v2/person_signup_helper)
-  */
-  fetch('https://actionnetwork.org/api/v2/people/', {
-    method: 'POST',
-    body: JSON.stringify(data),
-    headers: {
-      'Content-Type': 'application/json',
-      'OSDI-API-Token': process.env.AN_KEY
-    },
-  })
-  .then(res => {
-    if (!res.ok) {
-      throw "Request error"
+    const redBlueAnswer = userDetails.answers.find(answer => 
+      answer.question.toLowerCase() === "you consider yourself"
+    ).answer;
+
+    // Find the registrant's political affiliation in custom questions
+    let politicalOffiliation = null;
+
+    if (redBlueAnswer.includes("blue")) {
+      politicalOffiliation = "Blue"
+    } else if (redBlueAnswer.includes("red")) {
+      politicalOffiliation = "Red"
+    } else {
+      politicalOffiliation = "Other"
     }
-    return res.text()
-  })
-  .then(() => res.status(200).send('Successfully submitted to Action Network'))
-  .catch(err => res.status(500).send('Action Network request failed'));
+
+    foundData = {
+      eventName: eventDetails.name.text,
+      eventDate: eventDetails.start.local.split("T")[0],
+      firstName: userDetails.profile.first_name,
+      lastName: userDetails.profile.last_name,
+      email: userDetails.profile.email,
+      zip,
+      politicalOffiliation
+    }
+
+    const personData = {
+      email_addresses: [{
+        address: userDetails.profile.email,
+        status: 'subscribed'
+      }],
+      family_name: userDetails.profile.last_name,
+      given_name: userDetails.profile.first_name,
+      postal_addresses: [{
+        postal_code: zip
+      }],
+      country: "US",
+      language: "en",
+      custom_fields: {
+        'Master Partisanship': politicalOffiliation,
+        [eventDetails.name.text + "_attendance"]: "registered"
+      }
+    };
+
+    const data = {
+      person: personData,
+      add_tags: [politicalOffiliation],
+    };
+
+    /*
+    * Send the data to Action Network
+    * This will trigger the "Person Signup Helper" (https://actionnetwork.org/docs/v2/person_signup_helper)
+    */
+    fetch('https://actionnetwork.org/api/v2/people/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/json',
+        'OSDI-API-Token': process.env.AN_KEY
+      },
+    })
+    .then(res => {
+      if (!res.ok) {
+        throw "Request error"
+      }
+      return res.text()
+    })
+    .then(() => res.status(200).send('Successfully submitted to Action Network'))
+    .catch(err => res.status(500).send('Action Network request failed'));
+
+  });
 
 })
 
 module.exports = router
+

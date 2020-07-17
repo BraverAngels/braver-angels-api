@@ -4,6 +4,7 @@ const pino = require('express-pino-logger')()
 const zoomWebhook = require('./src/routes/zoom')
 const stripeWebhook = require('./src/routes/stripe')
 const eventbriteWebhook = require('./src/routes/eventbrite')
+const subscribeWebhook = require('./src/routes/subscribe')
 
 const port = 5000;
 
