@@ -8,7 +8,7 @@ require('dotenv').config()
 var jsonParser = bodyParser.json()
 
 router.post('/', jsonParser, (req, res, next) => {
-  req.log.info(req.body)
+  // req.log.info(req.body)
 
   const attendeeUrl = req.body.api_url + "?token=" + process.env.EVENTBRITE_TOKEN;
   const eventUrl = attendeeUrl.split("/attendees")[0] + "?token=" + process.env.EVENTBRITE_TOKEN;
@@ -93,9 +93,10 @@ router.post('/', jsonParser, (req, res, next) => {
 
     /*
     * Send the data to Action Network
-    * This will trigger the "Person Signup Helper" (https://actionnetwork.org/docs/v2/person_signup_helper)
+    * This will trigger the "Record Submission Helper" (https://actionnetwork.org/docs/v2/record_submission_helper)
+    * The "Subscribe" form settings can be accessed here: https://actionnetwork.org/forms/subscribe-to-our-newsletter-12/manage
     */
-    fetch('https://actionnetwork.org/api/v2/people/', {
+    fetch('https://actionnetwork.org/api/v2/forms/70252a3c-235d-43b2-8761-aa9c559fb6fd/submissions/', {
       method: 'POST',
       body: JSON.stringify(data),
       headers: {
