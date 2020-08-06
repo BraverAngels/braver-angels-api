@@ -8,11 +8,14 @@ require('dotenv').config()
 var jsonParser = bodyParser.json()
 
 router.post('/', jsonParser, (req, res, next) => {
-  // req.log.info(req.body)
+  
+  if(!req.body.hasOwnProperty('api_url')) {
+    res.status(204).send("No api url provided");
+    return next();
+  }
 
   const attendeeUrl = req.body.api_url + "?token=" + process.env.EVENTBRITE_TOKEN;
   const eventUrl = attendeeUrl.split("/attendees")[0] + "?token=" + process.env.EVENTBRITE_TOKEN;
-  let foundData;
 
   function getUserDetails() {
     return fetch(attendeeUrl)
@@ -23,7 +26,10 @@ router.post('/', jsonParser, (req, res, next) => {
         return res.json()
       })
       .then(data => data)
-      .catch(err => res.status(500).send('request failed'));
+      .catch(err => {
+        res.status(500).send('request failed')
+        return next();
+      });
   }
 
   function getEventDetails() {
@@ -35,26 +41,33 @@ router.post('/', jsonParser, (req, res, next) => {
         return res.json()
       })
       .then(data => data)
-      .catch(err => res.status(500).send('request failed'));
+      .catch(err => {
+        res.status(500).send('request failed')
+        return next();
+      });
   }
 
 
   Promise.all([getEventDetails(), getUserDetails()]).then(([eventDetails, userDetails]) => {
     
     if (typeof userDetails.answers === "undefined") {
-      throw "No ZIP or RedBlue Info"
+      res.status(204).send('no user details found')
+      return next();
     }
 
-    const zip = userDetails.answers.find(answer => 
-      answer.question.toLowerCase() === "what is your zip code?" || answer.question.toLowerCase() === "what is your zipcode?"
+    const zip = userDetails.answers.find(item => 
+      item.question.toLowerCase() === "what is your zip code?"
+      && typeof item.answer !== "undefined"
     )
 
-    const redBlueAnswer = userDetails.answers.find(answer => 
-      answer.question.toLowerCase() === "you consider yourself"
+    const redBlueAnswer = userDetails.answers.find(item => 
+      item.question.toLowerCase() === "you consider yourself" 
+      && typeof item.answer !== "undefined"
     );
 
     if (!zip || !redBlueAnswer) {
-      throw "No ZIP or RedBlue Info"
+      res.status(204).send('no user answers found')
+      return next();
     }
 
     // Find the registrant's political affiliation in custom questions
@@ -112,7 +125,6 @@ router.post('/', jsonParser, (req, res, next) => {
     })
     .then(() => res.status(200).send('Successfully submitted to Action Network'))
     .catch(err => {
-      console.log(err.message)
       res.status(500).send('Action Network request failed')
     });
 

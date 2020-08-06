@@ -18,6 +18,17 @@ let requestData = {
   }
 }
 
+// contains data will result in a user with unanswered questions
+let noAnswersData = {
+  api_url: "https://www.eventbriteapi.com/v3/events/115530369445/attendees/1973587171/",
+  config: {
+    action: "attendee.updated",
+    endpoint_url: "https://braverangels-api.now.sh/eventbrite",
+    user_id: "449599273692",
+    webhook_id: "2325190"
+  }
+}
+
 
 describe('API Routes', () => {
 
@@ -32,12 +43,21 @@ describe('API Routes', () => {
         })
     })
 
-    it('Responds with a 500 if data invalid', () => {
+    it('Responds with a 204 if data invalid', () => {
       return request(app).post("/eventbrite")
         .type('json')
         .send({bad_key: 'bad_value'})
         .then(response => {
-          expect(response.status).toEqual(500);
+          expect(response.status).toEqual(204);
+        })
+    })
+
+    it('Responds with a 204 if user has not answered questions', () => {
+      return request(app).post("/eventbrite")
+        .type('json')
+        .send(noAnswersData)
+        .then(response => {
+          expect(response.status).toEqual(204);
         })
     })
 

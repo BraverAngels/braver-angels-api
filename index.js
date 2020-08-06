@@ -9,7 +9,7 @@ const subscribeWebhook = require('./src/routes/subscribe')
 const port = 5000;
 
 // Logging
-app.use(pino)
+// app.use(pino)
 
 // Home route
 app.get("/", (req, res) => {
