@@ -1,12 +1,18 @@
+//gcloud builds submit --tag gcr.io/braverangels/ba-api
+//gcloud run deploy --image gcr.io/braverangels/ba-api --platform managed --set-env-vars "SUBSCRIBE_TOKEN=my_secret_token,AN_KEY=1cca0dc5454611648b705cb59c7bc183"
+
+
 const express = require("express");
 const app = express();
+const port = 8080;
 const pino = require('express-pino-logger')()
 const zoomWebhook = require('./src/routes/zoom')
 const stripeWebhook = require('./src/routes/stripe')
 const eventbriteWebhook = require('./src/routes/eventbrite')
 const subscribeWebhook = require('./src/routes/subscribe')
+const hatWebhook = require('./src/routes/subscribeHat')
 
-const port = 5000;
+app.use(express.json());
 
 // Logging
 // app.use(pino)
@@ -19,10 +25,9 @@ app.get("/", (req, res) => {
 app.use('/zoom', zoomWebhook)
 app.use('/stripe', stripeWebhook)
 app.use('/subscribe', subscribeWebhook)
+app.use('/subscribeHat', hatWebhook)
 app.use('/eventbrite', eventbriteWebhook)
 
-// Listen on port 5000
 app.listen(port, () => {
-  console.log(`Server is booming on port 5000
-Visit http://localhost:5000`);
+  console.log(`handleZoomRequest: listening on port ${port}`);
 });

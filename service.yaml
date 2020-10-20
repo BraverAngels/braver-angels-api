@@ -1,0 +1,36 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  annotations:
+    client.knative.dev/user-image: gcr.io/braverangels/ba-api@sha256:b109b053e86da203472e2a19ac97cc3c05bfc834edf9dee5d04cbb8ae158c535
+  labels:
+    cloud.googleapis.com/location: us-central1
+  name: ba-api
+  namespace: '843133746643'
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: '1000'
+        run.googleapis.com/client-name: cloud-console
+      name: ba-api-00001-nol
+    spec:
+      containerConcurrency: 80
+      containers:
+      - env:
+          - name: SUBSCRIBE_TOKEN
+            value: my_secret_token
+          - name: AN_KEY
+            value: 1cca0dc5454611648b705cb59c7bc183
+      - image: gcr.io/braverangels/ba-api@sha256:b109b053e86da203472e2a19ac97cc3c05bfc834edf9dee5d04cbb8ae158c535
+        ports:
+        - containerPort: 8080
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 256Mi
+      serviceAccountName: 843133746643-compute@developer.gserviceaccount.com
+      timeoutSeconds: 300
+  traffic:
+  - latestRevision: true
+    percent: 100
