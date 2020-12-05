@@ -7,129 +7,110 @@ require('dotenv').config()
 // create application/json parser
 var jsonParser = bodyParser.json()
 
-router.post('/', jsonParser, (req, res, next) => {
-  
+router.post('/', jsonParser, async (req, res, next) => {
+
   if(!req.body.hasOwnProperty('api_url')) {
-    res.status(204).send("No api url provided");
+    res.status(200).send("No api url provided");
     return next();
   }
 
+  //console.log('Eventbrite payload: ' + JSON.stringify(req.body));
+
   const attendeeUrl = req.body.api_url + "?token=" + process.env.EVENTBRITE_TOKEN;
+
+  //console.log('Attendee url: ' + attendeeUrl);
+
   const eventUrl = attendeeUrl.split("/attendees")[0] + "?token=" + process.env.EVENTBRITE_TOKEN;
 
-  function getUserDetails() {
-    return fetch(attendeeUrl)
-      .then(res => {
-        if (!res.ok) {
-          throw "Request error"
-        }
-        return res.json()
-      })
-      .then(data => data)
-      .catch(err => {
-        res.status(500).send('request failed')
-        return next();
-      });
-  }
+  //console.log('Event url: ' + eventUrl);
 
-  function getEventDetails() {
-    return fetch(eventUrl)
-      .then(res => {
-        if (!res.ok) {
-          throw "Request error"
-        }
-        return res.json()
-      })
-      .then(data => data)
-      .catch(err => {
-        res.status(500).send('request failed')
-        return next();
-      });
-  }
+  try {
 
+    let userDetailsResp = await fetch(attendeeUrl);
+    let userDetails = await userDetailsResp.json();
 
-  Promise.all([getEventDetails(), getUserDetails()]).then(([eventDetails, userDetails]) => {
-    
-    if (typeof userDetails.answers === "undefined") {
-      res.status(204).send('no user details found')
-      return next();
-    }
+    let eventDetailsResp = await fetch(eventUrl);
+    let eventDetails = await eventDetailsResp.json();
 
-    const zip = userDetails.answers.find(item => 
-      item.question.toLowerCase() === "what is your zip code?"
-      && typeof item.answer !== "undefined"
-    )
-
-    const redBlueAnswer = userDetails.answers.find(item => 
-      item.question.toLowerCase() === "you consider yourself" 
-      && typeof item.answer !== "undefined"
-    );
-
-    if (!zip || !redBlueAnswer) {
-      res.status(204).send('no user answers found')
-      return next();
-    }
-
-    // Find the registrant's political affiliation in custom questions
-    let politicalOffiliation = null;
-
-    if (redBlueAnswer.answer.includes("blue")) {
-      politicalOffiliation = "Blue"
-    } else if (redBlueAnswer.answer.includes("red")) {
-      politicalOffiliation = "Red"
-    } else {
-      politicalOffiliation = "Other"
-    }
-
-    const personData = {
+    let personData = {
       email_addresses: [{
         address: userDetails.profile.email,
         status: 'subscribed'
       }],
       family_name: userDetails.profile.last_name,
       given_name: userDetails.profile.first_name,
-      postal_addresses: [{
-        postal_code: zip.answer
-      }],
+
       country: "US",
       language: "en",
       custom_fields: {
-        'Master Partisanship': politicalOffiliation,
         [eventDetails.start.local.split("T")[0] + " " + eventDetails.name.text + "_attendance"]: "registered"
       }
     };
 
+    let politicalAffiliation = null;
+
+    if (userDetails.answers) {
+
+      const zip = userDetails.answers.find(item =>
+          item.question.toLowerCase() === "what is your zip code?"
+          && typeof item.answer !== "undefined"
+      )
+      if (zip) {
+        personData.postal_addresses = [{
+          postal_code: zip.answer
+        }]
+      }
+
+      const redBlueAnswer = userDetails.answers.find(item =>
+          item.question.toLowerCase() === "you consider yourself"
+          && typeof item.answer !== "undefined"
+      );
+
+      if (redBlueAnswer) {
+        // Find the registrant's political affiliation in custom questions
+        if (redBlueAnswer.answer.includes("blue")) {
+          politicalAffiliation = "Blue"
+        } else if (redBlueAnswer.answer.includes("red")) {
+          politicalAffiliation = "Red"
+        } else {
+          politicalAffiliation = "Other"
+        }
+        personData.custom_fields['Master Partisanship'] = politicalAffiliation
+      }
+    }
+
     const data = {
-      person: personData,
-      add_tags: [politicalOffiliation],
+      person: personData
     };
+
+    if (politicalAffiliation) {
+      data.add_tags = [politicalAffiliation]
+    }
 
     /*
     * Send the data to Action Network
     * This will trigger the "Record Submission Helper" (https://actionnetwork.org/docs/v2/record_submission_helper)
     * The "Subscribe" form settings can be accessed here: https://actionnetwork.org/forms/subscribe-to-our-newsletter-12/manage
     */
-    fetch('https://actionnetwork.org/api/v2/forms/70252a3c-235d-43b2-8761-aa9c559fb6fd/submissions/', {
+    let options = {
       method: 'POST',
       body: JSON.stringify(data),
       headers: {
         'Content-Type': 'application/json',
         'OSDI-API-Token': process.env.AN_KEY
-      },
-    })
-    .then(res => {
-      if (!res.ok) {
-        throw "Request error"
       }
-      return res.text()
-    })
-    .then(() => res.status(200).send('Successfully submitted to Action Network'))
-    .catch(err => {
-      res.status(500).send('Action Network request failed')
-    });
+    }
 
-  })
-  .catch(err => res.status(500).send('request failed'));
+    await fetch('https://actionnetwork.org/api/v2/forms/70252a3c-235d-43b2-8761-aa9c559fb6fd/submissions/', options);
+
+    res.status(200).send('Successfully submitted to Action Network')
+
+  } catch(err) {
+
+    console.log(err.stack);
+    res.status(500).send(JSON.stringify(err))
+
+  }
 
 })
 

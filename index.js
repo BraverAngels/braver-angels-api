@@ -1,6 +1,12 @@
+//This project gets deployed on Google Cloud Run
 //gcloud builds submit --tag gcr.io/braverangels/ba-api
-//gcloud run deploy --image gcr.io/braverangels/ba-api --platform managed --set-env-vars "SUBSCRIBE_TOKEN=my_secret_token,AN_KEY=1cca0dc5454611648b705cb59c7bc183"
-
+//gcloud run deploy --image gcr.io/braverangels/ba-api --platform managed
+//Don't forget to set environment variables using gcloud run services update ba-api --update-env-vars - see local .env-commands file
+//Required ENV variables:
+// SUBSCRIBE_TOKEN - use 'my_secret_token' value... passed only to avoid anonymous requests.
+// AN_KEY - secret key from Action Network
+// STRIPE_SIGNING_SECRET - temporarily deprecated due to issues with rawBody methods
+// STRIPE_SECRET_KEY
 
 const express = require("express");
 const app = express();

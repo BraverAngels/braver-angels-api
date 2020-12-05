@@ -17,11 +17,6 @@ spec:
     spec:
       containerConcurrency: 80
       containers:
-      - env:
-          - name: SUBSCRIBE_TOKEN
-            value: my_secret_token
-          - name: AN_KEY
-            value: 1cca0dc5454611648b705cb59c7bc183
       - image: gcr.io/braverangels/ba-api@sha256:b109b053e86da203472e2a19ac97cc3c05bfc834edf9dee5d04cbb8ae158c535
         ports:
         - containerPort: 8080

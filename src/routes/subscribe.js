@@ -55,7 +55,7 @@ router.post('/', urlencodedParser, (req, res, next) => {
     }],
     country: "US",
     language: "en",
-    customFields: []
+    custom_fields: []
   };
 
   const data = {

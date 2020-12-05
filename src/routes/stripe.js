@@ -6,19 +6,23 @@ require('dotenv').config()
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-
+/*
 router.use(bodyParser.json({
   // gives this endpoint access to raw body in req.rawBody
-  verify: function (req, res, buf) {
+  verify: (req, res, buf) => {
     req.rawBody = buf;
   }
 }), function validateStripeSignature(req, res, next) {
 
   const sig = req.headers['stripe-signature'];
 
+  console.log('stripe-signature: ' + sig);
+
   const endpointSecret = process.env.STRIPE_SIGNING_SECRET;
   
   let event;
+
+  console.log('rawbody: ' + req.rawBody);
 
   try {
     event = stripe.webhooks.constructEvent(req.rawBody, sig, endpointSecret);
@@ -30,6 +34,7 @@ router.use(bodyParser.json({
   // move to the next middleware if authenticated
   next()
 })
+ */
 
 
 router.post('/', (req, res, next) => {
