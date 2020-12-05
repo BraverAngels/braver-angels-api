@@ -1,5 +1,5 @@
 {
-  "name": "braverangels-api",
+  "name": "ba-cloudrun-api",
   "version": "1.0.0",
   "description": "endpoints to share data between Action Network and our various apps",
   "main": "index.js",
