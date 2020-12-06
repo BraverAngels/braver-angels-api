@@ -49,6 +49,8 @@ router.post('/', jsonParser, (req, res, next) => {
     registrantColor = "Other"
   } else if (colorAnswer.value.toLowerCase().includes("blue")) {
     registrantColor = "Blue"
+  } else if (redBlueAnswer.answer.includes("prefer") && redBlueAnswer.answer.includes("not")) {
+    registrantColor = "Declined"
   } else if (colorAnswer.value.toLowerCase().includes("red")) {
     registrantColor = "Red"
   }
@@ -62,9 +64,9 @@ router.post('/', jsonParser, (req, res, next) => {
     family_name: registrant.last_name,
     given_name: registrant.first_name,
     postal_addresses: [{
-      postal_code: registrant.zip
+      postal_code: registrant.zip,
+      country: "US"
     }],
-    country: "US",
     language: "en",
     custom_fields: {
       'Master Partisanship': registrantColor,

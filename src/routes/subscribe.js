@@ -51,9 +51,9 @@ router.post('/', urlencodedParser, (req, res, next) => {
     family_name: subscriber.last_name,
     given_name: subscriber.first_name,
     postal_addresses: [{
-      postal_code: subscriber.zip
+      postal_code: subscriber.zip,
+      country: "US"
     }],
-    country: "US",
     language: "en",
     custom_fields: []
   };

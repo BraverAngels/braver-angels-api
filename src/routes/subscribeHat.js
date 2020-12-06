@@ -52,7 +52,7 @@ router.post('/', urlencodedParser, async (req, res, next) => {
             'Red (Lean Conservative)': 'Red',
             'Blue (Lean Liberal)': 'Blue',
             'Other': 'Other',
-            'Prefer not to say': 'Declined to say political affiliation'
+            'Prefer not to say': 'Declined'
         }
 
         leaning = mappings[leaning];
@@ -66,9 +66,9 @@ router.post('/', urlencodedParser, async (req, res, next) => {
             family_name: subscriber.last_name,
             given_name: subscriber.first_name,
             postal_addresses: [{
-                postal_code: subscriber.zip
+                postal_code: subscriber.zip,
+                country: "US"
             }],
-            country: "US",
             language: "en",
             custom_fields: {"Master Partisanship": leaning }
         };

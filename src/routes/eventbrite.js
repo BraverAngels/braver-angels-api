@@ -39,8 +39,6 @@ router.post('/', jsonParser, async (req, res, next) => {
       }],
       family_name: userDetails.profile.last_name,
       given_name: userDetails.profile.first_name,
-
-      country: "US",
       language: "en",
       custom_fields: {
         [eventDetails.start.local.split("T")[0] + " " + eventDetails.name.text + "_attendance"]: "registered"
@@ -57,7 +55,8 @@ router.post('/', jsonParser, async (req, res, next) => {
       )
       if (zip) {
         personData.postal_addresses = [{
-          postal_code: zip.answer
+          postal_code: zip.answer,
+          country: "US"
         }]
       }
 
@@ -72,6 +71,8 @@ router.post('/', jsonParser, async (req, res, next) => {
           politicalAffiliation = "Blue"
         } else if (redBlueAnswer.answer.includes("red")) {
           politicalAffiliation = "Red"
+        } else if (redBlueAnswer.answer.includes("prefer") && redBlueAnswer.answer.includes("not")) {
+          politicalAffiliation = "Declined"
         } else {
           politicalAffiliation = "Other"
         }
